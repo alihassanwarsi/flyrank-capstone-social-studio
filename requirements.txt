@@ -1,2 +1,5 @@
 python-dotenv
 psycopg[binary]
+fastapi
+uvicorn
+pydantic
