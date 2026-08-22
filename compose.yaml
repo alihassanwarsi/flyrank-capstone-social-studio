@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: flyrank-social-studio-postgres
+
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    ports:
+      - "127.0.0.1:5433:5432"
+
+    volumes:
+      - flyrank_studio_data:/var/lib/postgresql/data
+
+volumes:
+  flyrank_studio_data:

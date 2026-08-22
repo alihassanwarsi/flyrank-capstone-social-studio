@@ -32,3 +32,23 @@ Personally verified:
 - The design matches the current Social Media Studio brief.
 - Image generation is excluded from the new core scope.
 - Real publishing is limited to a safe, owned free target.
+
+## Phase 2 - Persistence Foundation
+
+Added PostgreSQL persistence for stored source posts.
+
+Implemented:
+
+- PostgreSQL 16 with Docker Compose
+- Psycopg database connection
+- versioned raw SQL migration runner
+- `source_posts` table
+- `SourcePostRepository.create()`
+- `SourcePostRepository.get_by_id()`
+
+Personally verified:
+
+- PostgreSQL container starts successfully
+- Python connects to the database
+- migration creates `source_posts`
+- a Markdown post can be stored and read back unchanged
