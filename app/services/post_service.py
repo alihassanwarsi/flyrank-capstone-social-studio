@@ -1,18 +1,26 @@
+from app.ingestion.url_fetcher import fetch_url_content
 from app.repositories.source_post_repository import SourcePostRepository
 
 
 class PostService:
     @staticmethod
-    def create_from_markdown(
-        *,
-        markdown: str,
-        title: str | None = None,
-    ) -> dict:
+    def create(*, title: str | None = None, markdown: str | None = None, url: str | None = None) -> dict:
+
+        if markdown is not None:
+            return SourcePostRepository.create(
+                source_type="markdown",
+                source_url=None,
+                title=title,
+                content=markdown,
+            )
+
+        fetched_title, content = fetch_url_content(url)
+
         return SourcePostRepository.create(
-            source_type="markdown",
-            source_url=None,
-            title=title,
-            content=markdown,
+            source_type="url",
+            source_url=url,
+            title=title or fetched_title,
+            content=content,
         )
 
     @staticmethod

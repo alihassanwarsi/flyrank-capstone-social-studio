@@ -3,3 +3,5 @@ psycopg[binary]
 fastapi
 uvicorn
 pydantic
+httpx
+beautifulsoup4
