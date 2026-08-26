@@ -14,6 +14,10 @@ from app.variants.validator import (
     validate_variant,
 )
 
+from app.publishing.mock_x import MockXPublisher
+from app.repositories.mock_post_repository import (
+    MockPostRepository,
+)
 
 def test_bad_variant_is_blocked():
     bad_x_post = ("A" * 300) + " #one #two #three"
@@ -113,3 +117,54 @@ def test_adapter_swap_is_configuration_only(
         publisher,
         MockLinkedInPublisher,
     )
+
+def test_mock_publisher_reuses_idempotency_key(
+    monkeypatch,
+):
+    stored_posts = {}
+
+    def fake_create_or_get(
+        *,
+        adapter_name: str,
+        idempotency_key: str,
+        content: str,
+    ):
+        key = (
+            adapter_name,
+            idempotency_key,
+        )
+
+        if key not in stored_posts:
+            stored_posts[key] = {
+                "id": 101,
+                "adapter_name": adapter_name,
+                "idempotency_key": idempotency_key,
+                "content": content,
+            }
+
+        return stored_posts[key]
+
+    monkeypatch.setattr(
+        MockPostRepository,
+        "create_or_get",
+        fake_create_or_get,
+    )
+
+    publisher = MockXPublisher()
+
+    first = publisher.publish(
+        content="Crash-safe mock publish",
+        idempotency_key="slot-crash-test",
+    )
+
+    second = publisher.publish(
+        content="Crash-safe mock publish",
+        idempotency_key="slot-crash-test",
+    )
+
+    assert (
+        first.external_post_id
+        == second.external_post_id
+    )
+
+    assert len(stored_posts) == 1

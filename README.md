@@ -112,36 +112,82 @@ Copy `.env.example` to `.env`:
 Copy-Item .env.example .env
 ```
 
-Fill in PostgreSQL, Gemini, publisher-adapter, and Discord webhook values. Never commit `.env`.
+Fill in PostgreSQL, Gemini, publisher-adapter, and Discord webhook values.
 
-### 4. Start PostgreSQL
+Never commit `.env`.
 
-```powershell
-docker compose up -d
-docker compose ps
-```
+## One-Command Run
 
-### 5. Run migrations
+After dependencies and `.env` are configured, start PostgreSQL, run migrations, launch the FastAPI server, and launch the durable worker with:
 
 ```powershell
-python -m app.db.migrations
+python scripts/run.py
 ```
 
-### 6. Start the API
+Expected startup output includes:
 
-```powershell
-uvicorn app.main:app --reload
+```text
+Starting PostgreSQL...
+Running migrations...
+Starting API and worker...
+FlyRank Social Studio worker started.
+Uvicorn running on http://127.0.0.1:8000
 ```
 
-Swagger:
+Swagger is available at:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-### 7. Start the worker
+Stop the API and worker with `Ctrl + C`.
 
-In a second activated terminal:
+## Seed Step
+
+With the application dependencies configured and PostgreSQL running, open a second activated terminal and run:
+
+```powershell
+python scripts/seed.py
+```
+
+Expected output:
+
+```text
+Sample post created.
+Post ID: <id>
+```
+
+The seeded post can be verified through:
+
+```text
+GET /posts/{id}
+```
+
+The seed script intentionally creates only the source post. Variant generation and the review/scheduling workflow remain explicit API actions so the capstone flow can be demonstrated step by step.
+
+## Manual Development Commands
+
+If you prefer to run components separately:
+
+Start PostgreSQL:
+
+```powershell
+docker compose up -d
+```
+
+Run migrations:
+
+```powershell
+python -m app.db.migrations
+```
+
+Start the API:
+
+```powershell
+uvicorn app.main:app --reload
+```
+
+Start the worker in another terminal:
 
 ```powershell
 python -m app.worker
@@ -149,20 +195,21 @@ python -m app.worker
 
 ## End-to-End Flow
 
-1. Create a post with Markdown or a URL.
-2. Generate variants.
-3. Review/edit them.
-4. Approve a variant.
-5. Schedule it for a future timestamp.
-6. Keep the worker running.
-7. At the scheduled time, the worker automatically publishes the slot.
-8. Inspect `GET /publish-history`.
+1. Create or seed a source post.
+2. `POST /posts/{post_id}/variants`.
+3. Review the generated variants.
+4. Edit if necessary.
+5. Approve a variant.
+6. `POST /variants/{variant_id}/schedule` with a future timestamp.
+7. Keep the worker running.
+8. At the scheduled time, the worker automatically publishes the slot.
+9. Inspect `GET /publish-history`.
 
 ## Reliability
 
 Schedules live in PostgreSQL, so worker shutdown does not erase them. On restart, overdue rows are discovered again.
 
-Workers claim due rows atomically using PostgreSQL row locking with `SKIP LOCKED`. Claimed jobs record `processing_started_at`; stale processing rows can later be recovered.
+Workers claim due rows atomically using PostgreSQL row locking with `FOR UPDATE SKIP LOCKED`. Claimed jobs record `processing_started_at`; stale processing rows can later be recovered.
 
 Each schedule slot has an idempotency key. Before publishing, the service checks for an existing successful attempt. If one exists, it returns that success instead of invoking the publisher again.
 
@@ -185,6 +232,8 @@ Automated coverage includes invalid variant blocking, unapproved scheduling refu
 ## Manually Verified
 
 - Markdown and URL ingestion
+- one-command startup script
+- seed script
 - real Discord publishing
 - mock X publishing
 - mock LinkedIn publishing
