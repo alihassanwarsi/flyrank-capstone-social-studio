@@ -229,7 +229,7 @@ Status: PASS
 
 ---
 
-## 10. Mock adapter idempotency / crash-safe retry target
+## 10. Mock adapter idempotency
 
 Migration `007_create_mock_posts.sql` adds durable mock-post persistence with:
 
@@ -252,8 +252,6 @@ Automated test:
 ```text
 tests/test_final_requirements.py::test_mock_publisher_reuses_idempotency_key PASSED
 ```
-
-This provides a deterministic target for retry/crash acceptance testing without relying on a third-party platform's idempotency semantics.
 
 Status: PASS
 
@@ -292,7 +290,7 @@ Status: PASS
 
 ## 12. Secret-safety audit
 
-Commands:
+Commands executed:
 
 ```powershell
 git check-ignore .env
@@ -303,13 +301,15 @@ git grep -n "AIza"
 
 Observed:
 - `git check-ignore .env` returned `.env`
-- the remaining three commands returned no output
+- `git ls-files .env` returned no output
+- the two `git grep` commands matched only the literal audit-command strings documented in `BUILDLOG.md` and `EVIDENCE.md`
+- no actual Discord webhook URL was found in tracked files
+- no actual Gemini API key matching the checked pattern was found in tracked files
 
 Therefore:
 - `.env` is ignored
 - `.env` is not tracked
-- no Discord webhook URL was found in tracked files
-- no Gemini key matching the checked pattern was found in tracked files
+- tracked documentation contains only the security-check command text, not secrets
 
 Status: PASS
 
@@ -321,6 +321,6 @@ The real Discord adapter is suitable for proving a real free publish path and no
 
 However, Discord webhooks do not provide the same database-backed idempotency guarantee as the local mock adapters for the exact crash window where Discord accepts a message but the worker dies before PostgreSQL records success.
 
-For deterministic crash/retry proof, the project therefore uses the durable mock adapters, whose database uniqueness constraint guarantees one logical mock post per adapter/idempotency key.
+For deterministic retry/idempotency proof, the project therefore uses the durable mock adapters, whose database uniqueness constraint guarantees one logical mock post per adapter/idempotency key.
 
 This limitation is documented rather than hidden.

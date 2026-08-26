@@ -48,6 +48,8 @@ Discord   X       LinkedIn
 publish_attempts / publish history
 ```
 
+Mock publishers additionally persist logical posts in `mock_posts` so the same adapter/idempotency-key pair reuses the same logical mock post.
+
 ## Core Features
 
 - Markdown and URL ingestion
@@ -67,6 +69,7 @@ publish_attempts / publish history
 - configuration-based adapter swapping
 - publish attempt persistence
 - duplicate prevention for repeated successful schedule publishes
+- database-backed mock publisher idempotency
 - publish history API
 
 ## API
@@ -144,7 +147,7 @@ Stop the API and worker with `Ctrl + C`.
 
 ## Seed Step
 
-With the application dependencies configured and PostgreSQL running, open a second activated terminal and run:
+With PostgreSQL running, open a second activated terminal and run:
 
 ```powershell
 python scripts/seed.py
@@ -166,8 +169,6 @@ GET /posts/{id}
 The seed script intentionally creates only the source post. Variant generation and the review/scheduling workflow remain explicit API actions so the capstone flow can be demonstrated step by step.
 
 ## Manual Development Commands
-
-If you prefer to run components separately:
 
 Start PostgreSQL:
 
@@ -213,6 +214,8 @@ Workers claim due rows atomically using PostgreSQL row locking with `FOR UPDATE 
 
 Each schedule slot has an idempotency key. Before publishing, the service checks for an existing successful attempt. If one exists, it returns that success instead of invoking the publisher again.
 
+Mock X and Mock LinkedIn also persist logical posts in `mock_posts` with a uniqueness rule on `(adapter_name, idempotency_key)`. Retrying the same mock publish therefore returns the same logical post instead of creating another one.
+
 ## Tests
 
 Run:
@@ -224,10 +227,15 @@ pytest -q
 Final verified result:
 
 ```text
-9 passed
+10 passed
 ```
 
-Automated coverage includes invalid variant blocking, unapproved scheduling refusal, duplicate publish prevention, and configuration-only adapter swapping.
+Automated coverage includes:
+- invalid variant blocking
+- unapproved scheduling refusal
+- repeated successful publish prevention
+- configuration-only adapter swapping
+- mock publisher idempotency
 
 ## Manually Verified
 
@@ -241,13 +249,23 @@ Automated coverage includes invalid variant blocking, unapproved scheduling refu
 - automatic scheduled publishing
 - worker-off / schedule-due / worker-restart recovery
 - repeated successful Discord publish does not create a second message
+- mock idempotency returns the same logical mock post
 - publish history visibility
 
 ## Security
 
 - `.env` is ignored by Git.
+- `.env` is not tracked.
 - Real API keys and webhook URLs must never be committed.
 - `.env.example` contains placeholders only.
+
+## Known Limitations
+
+The real Discord webhook is used to prove a real free external publishing path.
+
+The application prevents repeated publishing once a successful attempt has been recorded locally. However, Discord webhooks do not provide the same database-backed idempotency guarantee as the local mock adapters for the narrow failure window where Discord accepts a message but the worker crashes before PostgreSQL records success.
+
+For deterministic retry/idempotency verification, the project uses the database-backed mock adapters, where `(adapter_name, idempotency_key)` is unique.
 
 ## Out of Scope
 
