@@ -1,47 +1,50 @@
 # Capstone Evidence
 
 ## Phase 1 - Design
-Evidence: `docs/DESIGN.md`
-
 Status: Complete.
 
 ## Phase 2 - Ingestion and Variant Generation
-
-Implemented:
-- PostgreSQL persistence and raw SQL migrations
-- Markdown ingestion
-- URL fetching and text extraction
-- stored source-of-truth workflow
-- Discord, X-style, and LinkedIn-style Gemini variants
-- deterministic constraint validation
+Implemented and verified:
+- Markdown and URL ingestion
+- PostgreSQL source-of-truth persistence
+- Gemini generation for Discord, X-style, and LinkedIn-style variants
+- deterministic platform constraint validation
+- invalid variants blocked before persistence
 - variant API endpoints
-
-Verified:
-- Markdown and URL sources can be stored and retrieved
-- stored source content is used for generation
-- three platform variants are generated and stored
-- a rule-breaking variant is blocked before persistence
 
 Status: Complete.
 
 ## Phase 3 - Human Review and Scheduling Gate
+Implemented and verified:
+- variant statuses: `draft`, `approved`, `rejected`, `published`
+- draft editing with revalidation
+- approve and reject workflow
+- only approved variants can be scheduled
+- past schedule times are rejected
+
+Status: Complete.
+
+## Phase 4 - Publisher Adapters and Idempotency
 
 Implemented:
-- variant statuses: `draft`, `approved`, `rejected`, `published`
-- draft editing
-- approve and reject workflow
-- revalidation after human edits
-- schedule slot persistence
-- scheduling allowed only for approved variants
-- future-time validation
+- common `SocialPublisher` interface
+- shared `PublishResult`
+- real `DiscordPublisher`
+- `MockXPublisher`
+- `MockLinkedInPublisher`
+- configuration-based publisher registry
+- stable schedule idempotency keys
+- `publish_attempts` persistence
+- publishing service
+- manual publish API endpoint
 
 Manually verified:
-- draft variant can be edited
-- draft variant can be approved
-- approved variant cannot be rejected
-- approved variant cannot be edited
-- approved variant can be scheduled
-- unapproved variant is refused with a clean 4xx response
-- past schedule time is refused
+- real Discord message publishing
+- mock X publishing
+- mock LinkedIn publishing
+- configuration-based adapter swap
+- publish attempt recording
+- repeated successful schedule publish returns the existing success
+- repeated successful Discord publish does not create a duplicate message
 
-Status: Phase 3 complete.
+Status: Phase 4 complete.
