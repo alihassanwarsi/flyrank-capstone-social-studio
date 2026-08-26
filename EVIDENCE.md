@@ -1,50 +1,86 @@
-# Capstone Evidence
+# EVIDENCE
 
-## Phase 1 - Design
-Status: Complete.
+## 1. Ingestion and Source of Truth
+Implemented Markdown and URL ingestion with PostgreSQL persistence. Generation reads stored source content.
 
-## Phase 2 - Ingestion and Variant Generation
-Implemented and verified:
-- Markdown and URL ingestion
-- PostgreSQL source-of-truth persistence
-- Gemini generation for Discord, X-style, and LinkedIn-style variants
-- deterministic platform constraint validation
-- invalid variants blocked before persistence
-- variant API endpoints
+Manual verification: Markdown and URL creation, retrieval, invalid source combinations, and clean URL failure handling.
 
-Status: Complete.
+Status: PASS
 
-## Phase 3 - Human Review and Scheduling Gate
-Implemented and verified:
-- variant statuses: `draft`, `approved`, `rejected`, `published`
-- draft editing with revalidation
-- approve and reject workflow
-- only approved variants can be scheduled
-- past schedule times are rejected
+## 2. Variant Generation and Constraints
+Implemented Gemini generation for Discord, X-style, and LinkedIn-style variants plus deterministic constraint validation.
 
-Status: Complete.
+Automated verification: invalid X-style content is blocked.
 
-## Phase 4 - Publisher Adapters and Idempotency
+Status: PASS
 
-Implemented:
-- common `SocialPublisher` interface
-- shared `PublishResult`
-- real `DiscordPublisher`
+## 3. Human Review
+Implemented `draft`, `approved`, `rejected`, and `published`, plus draft editing with revalidation, approve, and reject.
+
+Manual verification: edit succeeds, approval succeeds, invalid transitions are refused.
+
+Status: PASS
+
+## 4. Approved-Only Scheduling
+Implemented durable schedule slots, future-time validation, and approved-only scheduling.
+
+Automated verification: unapproved scheduling raises `ScheduleServiceError`.
+
+Status: PASS
+
+## 5. Publisher Architecture
+Implemented one `SocialPublisher` contract with:
+- `DiscordPublisher`
 - `MockXPublisher`
 - `MockLinkedInPublisher`
-- configuration-based publisher registry
-- stable schedule idempotency keys
-- `publish_attempts` persistence
-- publishing service
-- manual publish API endpoint
 
-Manually verified:
-- real Discord message publishing
-- mock X publishing
-- mock LinkedIn publishing
-- configuration-based adapter swap
-- publish attempt recording
-- repeated successful schedule publish returns the existing success
-- repeated successful Discord publish does not create a duplicate message
+Adapter selection is configuration-driven.
 
-Status: Phase 4 complete.
+Automated and manual verification: adapter swap works without changing business logic.
+
+Status: PASS
+
+## 6. Publishing
+Manual verification:
+- real Discord message published successfully
+- X mock succeeded with preview
+- LinkedIn mock succeeded with preview
+
+Status: PASS
+
+## 7. Publish Attempts and History
+Implemented `publish_attempts` persistence and `GET /publish-history`.
+
+Manual verification: Discord and mock publish records are visible.
+
+Status: PASS
+
+## 8. Duplicate Prevention
+Implemented schedule idempotency keys and existing-success checks before publisher invocation.
+
+Automated verification: publisher is not called when a successful attempt already exists.
+
+Manual verification: publishing the same Discord schedule twice produced only one Discord message.
+
+Status: PASS
+
+## 9. Durable Worker and Recovery
+Implemented PostgreSQL-backed polling, atomic claims with `FOR UPDATE SKIP LOCKED`, `processing_started_at`, and stale-processing recovery.
+
+Manual verification:
+- worker automatically processed due schedules
+- worker was stopped
+- a schedule became due while the worker was off
+- restarting the worker immediately recovered and published the overdue job
+
+Status: PASS
+
+## 10. Final Automated Test Run
+
+```text
+9 passed
+```
+
+One Starlette TestClient deprecation warning was present and did not affect correctness.
+
+Status: PASS

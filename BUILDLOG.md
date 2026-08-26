@@ -1,48 +1,46 @@
-# Build Log
+# BUILDLOG
 
-## Project Setup
-Started a fresh implementation using the current **Social Media Studio** capstone brief.
+## Phase 1 — Design
+Defined ingestion, source-of-truth persistence, platform constraints, review states, publisher interface, data model, API surface, and non-goals.
 
-## Phase 1 - Design
-Defined the source-of-truth workflow, constraints, review flow, publisher interface, data model, API surface, and non-goals.
+## Phase 2 — Ingestion and Generation
+Added PostgreSQL connection, raw SQL migrations, source post persistence, Markdown/URL ingestion, FastAPI endpoints, variant persistence, deterministic validation, and Gemini generation.
 
-## Phase 2 - Ingestion and Variant Generation
-Built PostgreSQL persistence, Markdown/URL ingestion, Gemini generation, validation, persistence, and API endpoints.
+## Phase 3 — Review and Scheduling
+Added variant statuses, editing with revalidation, approve/reject behavior, schedule slots, future-time validation, and approved-only scheduling.
 
-Phase 2 status: Complete.
+## Phase 4 — Publishers and Idempotency
+Added `SocialPublisher`, `PublishResult`, real Discord publishing, X/LinkedIn mocks, config-based registry, schedule idempotency keys, `publish_attempts`, publishing service, and manual publish endpoint.
 
-## Phase 3 - Human Review Workflow
-Added review statuses, edit/approve/reject behavior, schedule slots, and the approved-only scheduling gate.
+Fixed a Psycopg `dict_row` bug by reading the aliased attempt-number value with `row["next_attempt"]`.
 
-Phase 3 status: Complete.
+## Phase 5 — Durable Worker and Hardening
+Added due-schedule processing, automatic polling worker, publish history endpoint, atomic claiming using `FOR UPDATE SKIP LOCKED`, `processing_started_at`, and stale-processing recovery.
 
-## Phase 4 - Publisher Adapters and Idempotency
+Verified worker restart recovery by letting a schedule become due while the worker was stopped, then restarting it and observing successful processing.
 
-Added:
-- `SocialPublisher` base interface
-- `PublishResult`
-- real Discord webhook publisher
-- mock X publisher
-- mock LinkedIn publisher
-- environment-configured publisher registry
-- schedule idempotency keys
-- `publish_attempts` table and repository
-- publishing service
-- manual publish endpoint
+Added deterministic tests for invalid variant blocking, unapproved scheduling refusal, duplicate publish prevention, and config-only adapter swapping.
 
-Reliability behavior:
-- publish attempts are persisted
-- existing successful attempts are checked before publishing again
-- repeated successful schedule calls do not call the publisher again
+Updated an older API test fixture after the required variant `status` field was introduced.
 
-Personally verified:
-- real Discord publishing
-- mock X publishing
-- mock LinkedIn publishing
-- adapter swapping through configuration
-- no duplicate Discord message on a repeated successful schedule publish
+Final test result:
 
-Fixed during development:
-- publish attempt numbering with Psycopg `dict_row` now reads the aliased value using `row["next_attempt"]`
+```text
+9 passed
+```
 
-Phase 4 status: Complete.
+## Final Flow
+
+```text
+ingest
+-> persist source
+-> generate
+-> validate
+-> review
+-> approve
+-> schedule
+-> durable worker
+-> publish
+-> record history
+-> prevent repeated successful publish
+```

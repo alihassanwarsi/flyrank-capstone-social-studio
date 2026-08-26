@@ -1,0 +1,2 @@
+ALTER TABLE schedule_slots
+ADD COLUMN processing_started_at TIMESTAMPTZ;

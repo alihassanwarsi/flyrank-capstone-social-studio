@@ -127,3 +127,27 @@ class PublishAttemptRepository:
                 )
 
                 return cursor.fetchone()
+
+    @staticmethod
+    def get_all() -> list[dict]:
+        with get_connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        id,
+                        schedule_slot_id,
+                        adapter_name,
+                        attempt_number,
+                        status,
+                        external_post_id,
+                        external_url,
+                        preview,
+                        error_message,
+                        created_at
+                    FROM publish_attempts
+                    ORDER BY created_at DESC
+                    """
+                )
+
+                return cursor.fetchall()
