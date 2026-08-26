@@ -5,3 +5,4 @@ uvicorn
 pydantic
 httpx
 beautifulsoup4
+google-genai

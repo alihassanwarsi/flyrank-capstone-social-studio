@@ -16,6 +16,7 @@ dependencies = [
     "pydantic",
     "httpx",
     "beautifulsoup4",
+    "google-genai",
 ]
 
 [tool.setuptools.packages.find]
