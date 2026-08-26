@@ -1,41 +1,43 @@
 # Capstone Evidence
 
-This file will be updated as each requirement from the current **Social Media Studio** brief is completed and verified.
-
 ## Phase 1 - Design
+Evidence: `docs/DESIGN.md`
 
-Evidence:
-- `docs/DESIGN.md`
-
-The design defines:
+Verified design coverage:
 - platform constraint profiles
 - `SocialPublisher` interface
 - core data model
 - API surface
-- layered architecture
 - explicit non-goals
-- phase gates
 
 Status: Complete.
 
-## Phase 2 - Source Post Persistence
+## Phase 2 - Ingestion and Variant Generation
 
-### Implementation
+Implemented:
+- PostgreSQL persistence and raw SQL migrations
+- Markdown ingestion
+- URL fetching and text extraction
+- stored source-of-truth workflow
+- `variants` table and repository
+- Discord, X-style, and LinkedIn-style Gemini generation
+- deterministic constraint validation
+- variant API endpoints
 
-- `app/db/database.py`
-- `app/db/migrations.py`
-- `migrations/001_create_source_posts.sql`
-- `app/repositories/source_post_repository.py`
+Verified manually:
+- Markdown source can be stored and retrieved unchanged
+- URL content can be fetched, cleaned, stored, and retrieved
+- Gemini generated three platform variants from a stored source post
+- generated variants passed validation and were stored
 
-### Verified
+Verified automatically:
+- stored source content is used during generation
+- three platform variants are saved
+- a rule-breaking X variant is blocked before any variant is saved
+- generation endpoint returns `201`
+- missing source post returns `404`
+- duplicate generation returns `409`
 
-A Markdown source post was inserted into PostgreSQL and retrieved through the repository with the same stored content.
+Latest result: `5 passed, 1 warning`
 
-Status: Persistence foundation complete.
-
-## Remaining Phases
-
-- Phase 2: ingestion and variant generation
-- Phase 3: review workflow
-- Phase 4: adapters and idempotent publishing
-- Phase 5: durable scheduling, publish history, testing, and hardening
+Status: Phase 2 complete.

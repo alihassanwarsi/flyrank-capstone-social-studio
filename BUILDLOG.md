@@ -1,54 +1,46 @@
 # Build Log
 
-This file records development decisions, AI assistance, corrections, and personally verified work.
-
 ## Project Setup
-
-Started a fresh implementation using the current **Social Media Studio** capstone brief.
-
-The older Multi-Platform Social Campaign Publisher implementation is not being used as the final submission architecture.
+Started a fresh implementation using the current **Social Media Studio** brief.
 
 ## Phase 1 - Design
+Created `docs/DESIGN.md` before feature implementation.
 
-Created `docs/DESIGN.md` before implementing application features.
+Key decisions:
+- stored blog post is the source of truth
+- Markdown or URL input
+- Discord real publisher; X and LinkedIn mocks later
+- deterministic constraints
+- durable scheduling and idempotency later
 
-The design follows the current brief and defines:
+## Phase 2 - Ingestion and Variant Generation
 
-- stored blog posts as the source of truth
-- platform-specific variants
-- constraint profiles
-- review statuses: `draft`, `approved`, `rejected`, `published`
-- one common `SocialPublisher` interface
-- one real publishing target: Discord
-- two mock publishers: X-style and LinkedIn-style
-- durable scheduling
-- idempotent publishing
-- visible publish history
-
-AI assistance:
-- Helped organize the capstone brief into a concrete backend architecture and development plan.
-
-Personally verified:
-- The design matches the current Social Media Studio brief.
-- Image generation is excluded from the new core scope.
-- Real publishing is limited to a safe, owned free target.
-
-## Phase 2 - Persistence Foundation
-
-Added PostgreSQL persistence for stored source posts.
-
-Implemented:
-
+Added:
 - PostgreSQL 16 with Docker Compose
-- Psycopg database connection
-- versioned raw SQL migration runner
-- `source_posts` table
-- `SourcePostRepository.create()`
-- `SourcePostRepository.get_by_id()`
+- Psycopg connection
+- raw SQL migration runner
+- source post repository
+- FastAPI ingestion API
+- Markdown and URL ingestion
+- URL extraction with `httpx` + BeautifulSoup
+- `variants` table and repository
+- platform constraint profiles and validator
+- Gemini variant generator
+- variant service and API endpoints
+- automated tests
 
 Personally verified:
+- DB connectivity and persistence
+- Markdown and URL ingestion
+- three generated platform variants
+- successful validation and persistence
 
-- PostgreSQL container starts successfully
-- Python connects to the database
-- migration creates `source_posts`
-- a Markdown post can be stored and read back unchanged
+Automated verification:
+- stored content is used for generation
+- three variants are saved
+- invalid variant is blocked before persistence
+- API success / 404 / 409 behavior
+
+Latest test run: `5 passed, 1 warning`
+
+Phase 2 status: Complete.

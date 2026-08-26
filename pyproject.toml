@@ -19,6 +19,11 @@ dependencies = [
     "google-genai",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["app*"]
