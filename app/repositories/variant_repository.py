@@ -26,6 +26,7 @@ class VariantRepository:
                         source_post_id,
                         platform,
                         content,
+                        status,
                         created_at,
                         updated_at
                     """,
@@ -34,6 +35,28 @@ class VariantRepository:
                         platform,
                         content,
                     ),
+                )
+
+                return cursor.fetchone()
+
+    @staticmethod
+    def get_by_id(variant_id: int) -> dict | None:
+        with get_connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    SELECT
+                        id,
+                        source_post_id,
+                        platform,
+                        content,
+                        status,
+                        created_at,
+                        updated_at
+                    FROM variants
+                    WHERE id = %s
+                    """,
+                    (variant_id,),
                 )
 
                 return cursor.fetchone()
@@ -49,6 +72,7 @@ class VariantRepository:
                         source_post_id,
                         platform,
                         content,
+                        status,
                         created_at,
                         updated_at
                     FROM variants
@@ -59,3 +83,67 @@ class VariantRepository:
                 )
 
                 return cursor.fetchall()
+
+    @staticmethod
+    def update_content(
+        *,
+        variant_id: int,
+        content: str,
+    ) -> dict | None:
+        with get_connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    UPDATE variants
+                    SET
+                        content = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING
+                        id,
+                        source_post_id,
+                        platform,
+                        content,
+                        status,
+                        created_at,
+                        updated_at
+                    """,
+                    (
+                        content,
+                        variant_id,
+                    ),
+                )
+
+                return cursor.fetchone()
+
+    @staticmethod
+    def update_status(
+        *,
+        variant_id: int,
+        status: str,
+    ) -> dict | None:
+        with get_connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cursor:
+                cursor.execute(
+                    """
+                    UPDATE variants
+                    SET
+                        status = %s,
+                        updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING
+                        id,
+                        source_post_id,
+                        platform,
+                        content,
+                        status,
+                        created_at,
+                        updated_at
+                    """,
+                    (
+                        status,
+                        variant_id,
+                    ),
+                )
+
+                return cursor.fetchone()

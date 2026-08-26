@@ -1,46 +1,48 @@
 # Build Log
 
 ## Project Setup
-Started a fresh implementation using the current **Social Media Studio** brief.
+
+Started a fresh implementation using the current **Social Media Studio** capstone brief.
 
 ## Phase 1 - Design
-Created `docs/DESIGN.md` before feature implementation.
 
-Key decisions:
-- stored blog post is the source of truth
-- Markdown or URL input
-- Discord real publisher; X and LinkedIn mocks later
-- deterministic constraints
-- durable scheduling and idempotency later
+Defined the source-of-truth workflow, platform constraints, review states, publisher interface, data model, API surface, and non-goals.
 
 ## Phase 2 - Ingestion and Variant Generation
 
 Added:
-- PostgreSQL 16 with Docker Compose
-- Psycopg connection
-- raw SQL migration runner
-- source post repository
-- FastAPI ingestion API
+- PostgreSQL with Docker Compose
+- Psycopg and raw SQL migrations
 - Markdown and URL ingestion
-- URL extraction with `httpx` + BeautifulSoup
-- `variants` table and repository
-- platform constraint profiles and validator
-- Gemini variant generator
-- variant service and API endpoints
-- automated tests
+- URL extraction with `httpx` and BeautifulSoup
+- source post and variant repositories
+- Gemini generation
+- deterministic platform constraint validation
+- variant API endpoints
 
-Personally verified:
-- DB connectivity and persistence
-- Markdown and URL ingestion
-- three generated platform variants
-- successful validation and persistence
-
-Automated verification:
-- stored content is used for generation
-- three variants are saved
-- invalid variant is blocked before persistence
-- API success / 404 / 409 behavior
-
-Latest test run: `5 passed, 1 warning`
+Personally verified the ingestion and generation flow.
 
 Phase 2 status: Complete.
+
+## Phase 3 - Human Review Workflow
+
+Added:
+- review status migration
+- variant edit/status repository operations
+- review service
+- edit, approve, and reject endpoints
+- schedule slots table
+- schedule repository and service
+- schedule API endpoint
+
+Business rules:
+- generated variants begin as `draft`
+- only draft variants can be edited
+- edited content is revalidated
+- only draft variants can be approved or rejected
+- only approved variants can be scheduled
+- schedules must use a future timestamp
+
+Personally verified the workflow through FastAPI Swagger.
+
+Phase 3 status: Complete.

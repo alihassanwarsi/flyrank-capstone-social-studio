@@ -3,13 +3,6 @@
 ## Phase 1 - Design
 Evidence: `docs/DESIGN.md`
 
-Verified design coverage:
-- platform constraint profiles
-- `SocialPublisher` interface
-- core data model
-- API surface
-- explicit non-goals
-
 Status: Complete.
 
 ## Phase 2 - Ingestion and Variant Generation
@@ -19,25 +12,36 @@ Implemented:
 - Markdown ingestion
 - URL fetching and text extraction
 - stored source-of-truth workflow
-- `variants` table and repository
-- Discord, X-style, and LinkedIn-style Gemini generation
+- Discord, X-style, and LinkedIn-style Gemini variants
 - deterministic constraint validation
 - variant API endpoints
 
-Verified manually:
-- Markdown source can be stored and retrieved unchanged
-- URL content can be fetched, cleaned, stored, and retrieved
-- Gemini generated three platform variants from a stored source post
-- generated variants passed validation and were stored
+Verified:
+- Markdown and URL sources can be stored and retrieved
+- stored source content is used for generation
+- three platform variants are generated and stored
+- a rule-breaking variant is blocked before persistence
 
-Verified automatically:
-- stored source content is used during generation
-- three platform variants are saved
-- a rule-breaking X variant is blocked before any variant is saved
-- generation endpoint returns `201`
-- missing source post returns `404`
-- duplicate generation returns `409`
+Status: Complete.
 
-Latest result: `5 passed, 1 warning`
+## Phase 3 - Human Review and Scheduling Gate
 
-Status: Phase 2 complete.
+Implemented:
+- variant statuses: `draft`, `approved`, `rejected`, `published`
+- draft editing
+- approve and reject workflow
+- revalidation after human edits
+- schedule slot persistence
+- scheduling allowed only for approved variants
+- future-time validation
+
+Manually verified:
+- draft variant can be edited
+- draft variant can be approved
+- approved variant cannot be rejected
+- approved variant cannot be edited
+- approved variant can be scheduled
+- unapproved variant is refused with a clean 4xx response
+- past schedule time is refused
+
+Status: Phase 3 complete.
